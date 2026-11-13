@@ -199,3 +199,5 @@ header,#toc,#panel,.btn,.seg button,.note,.gutter button,.modal-body,textarea,se
 #topbar { background:var(--surface); color:var(--ink); }
 :root[data-theme="dark"] .btn.primary { color:#151a21; }
 .unit img,.original-figure object { color-scheme:light; }
+#sel-pop[hidden] { display:none; }
+:root[data-theme="dark"] .note-quote { color:var(--muted); border-color:var(--line); }
