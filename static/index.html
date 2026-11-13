@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PaperBridge · 论文双语批注台</title>
+<link rel="stylesheet" href="/static/vendor/katex/katex.min.css">
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<header id="topbar">
+  <div class="brand" id="paper-title">PaperBridge · 论文双语批注台</div>
+  <div class="seg" id="lang-seg" title="显示语言（快捷键 L 切换）">
+    <button data-lang="side">中英对照</button>
+    <button data-lang="stack">上下</button>
+    <button data-lang="en">EN</button>
+    <button data-lang="zh">中文</button>
+  </div>
+  <div id="progress" title="已标记审阅的小节"></div>
+  <div class="spacer"></div>
+  <span id="model-info"></span>
+  <a href="/export/notes" target="_blank" class="btn" title="REVIEW_NOTES.md：修改时 AI 读取的意见清单">意见汇总</a>
+  <a href="/export/chat" target="_blank" class="btn" title="CHAT_LOG.md：所有讨论记录">讨论记录</a>
+  <details class="appearance"><summary class="btn">阅读设置</summary><div class="appearance-menu">
+    <label>字号 <output id="size-value"></output><input id="reading-size" type="range" min="12" max="30" step="1"></label>
+    <label>字体 <select id="reading-font"><option value="serif">衬线 / 宋体</option><option value="sans">无衬线 / 黑体</option><option value="mono">等宽</option></select></label>
+    <label>主题 <select id="reading-theme"><option value="paper">纸白</option><option value="light">明亮</option><option value="sepia">暖黄</option><option value="forest">护眼绿</option><option value="dark">深夜</option></select></label>
+    <label>页面背景 <input id="reading-background" type="color"></label>
+    <button id="appearance-reset" class="btn">恢复默认</button>
+  </div></details>
+  <button id="help-btn" class="btn">帮助</button>
+</header>
+
+<div id="layout">
+  <nav id="toc"></nav>
+  <main id="content"></main>
+  <div id="splitter" title="拖动调整侧栏宽度"></div>
+  <aside id="panel">
+    <div class="tabs">
+      <button data-tab="notes">批注 <span class="count" id="cnt-notes"></span></button>
+      <button data-tab="chat">AI 讨论 <span class="count" id="cnt-chat"></span></button>
+      <button data-tab="all">全部意见 <span class="count" id="cnt-all"></span></button>
+    </div>
+    <div id="anchor-bar"></div>
+
+    <section id="tab-notes" class="tab">
+      <div class="composer">
+        <div class="composer-kind" id="composer-kind"></div>
+        <textarea id="note-input" rows="4" placeholder="写下对本节 / 所选段落的意见……（Ctrl+Enter 保存）"></textarea>
+        <div class="row">
+          <span class="hint">先在正文点段落左侧的 ✎ 或划选文字，可把意见锚定到具体位置</span>
+          <button id="note-save" class="btn primary">保存批注</button>
+        </div>
+      </div>
+      <div id="notes-list"></div>
+    </section>
+
+    <section id="tab-chat" class="tab">
+      <div id="chat-msgs"></div>
+      <div class="chat-box">
+        <div class="quick" id="quick"></div>
+        <textarea id="chat-input" rows="3" placeholder="和 AI 讨论这一节怎么改……（Enter 发送，Shift+Enter 换行）"></textarea>
+        <div class="row">
+          <label title="把全文英文稿作为上下文发给模型（推荐，便于检查前后一致）"><input type="checkbox" id="opt-full"> 附带全文</label>
+          <span id="extra-opts"></span>
+          <div class="spacer"></div>
+          <button id="chat-clear" class="btn small" title="归档本节对话并开始新对话">新对话</button>
+          <button id="chat-summarize" class="btn small" title="让 AI 把讨论中认可的修改整理成批注草稿">总结为批注</button>
+          <button id="chat-send" class="btn primary">发送</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-all" class="tab">
+      <div class="seg small" id="filter-seg">
+        <button data-f="open">待处理</button>
+        <button data-f="done">已处理</button>
+        <button data-f="wontfix">不改</button>
+        <button data-f="all">全部</button>
+      </div>
+      <div id="all-list"></div>
+    </section>
+  </aside>
+</div>
+
+<div id="sel-pop" hidden>
+  <button data-act="note">✎ 批注所选</button>
+  <button data-act="ask">💬 问 AI</button>
+</div>
+
+<div id="help" class="modal" hidden>
+  <div class="modal-body">
+    <h2>使用方法</h2>
+    <ol>
+      <li><b>逐节阅读</b>：左侧目录切换小节；<kbd>←</kbd>/<kbd>→</kbd> 上一节 / 下一节；<kbd>L</kbd> 切换语言显示。</li>
+      <li><b>批注</b>：鼠标移到段落上，点左侧 <b>✎</b> 锚定该段；或直接划选文字，点「批注所选」。在右侧写意见并保存（<kbd>Ctrl</kbd>+<kbd>Enter</kbd>）。不选段落则为整节意见；「全局意见」用于全文层面的意见。</li>
+      <li><b>与 AI 讨论</b>：点段落左侧 <b>💬</b> 或划选后「问 AI」，在「AI 讨论」中提问。每节有独立对话，AI 会看到本节中英文、本节已有批注，以及（勾选时）全文英文稿。可用上方快捷提问。</li>
+      <li><b>保留结论</b>：AI 回复下方「存为批注」把该回复放入批注草稿；或点「总结为批注」让 AI 把整段讨论中你认可的方案整理成清单。草稿需你确认、修改后保存。</li>
+      <li><b>状态</b>：每条批注可设为 待处理 / 已处理 / 不改。读完一节可点「标记本节已审」。</li>
+      <li><b>交给 AI 修改</b>：全部意见自动写入 <code>工作区/REVIEW_NOTES.md</code>。对你的 AI 编程助手说「按 review 的意见修改论文」即可；修改后它会把每条的处理说明回填，这里会自动刷新显示。</li>
+    </ol>
+    <p class="hint">所有数据保存在 <code>工作区/data/review.json</code>，刷新页面不会丢失。</p>
+    <button class="btn primary" onclick="document.getElementById('help').hidden=true">知道了</button>
+  </div>
+</div>
+<div id="toast"></div>
+
+<script src="/static/vendor/katex/katex.min.js"></script>
+<script src="/static/vendor/marked.min.js"></script>
+<script src="/static/vendor/purify.min.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

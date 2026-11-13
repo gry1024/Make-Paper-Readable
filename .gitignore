@@ -1,0 +1,12 @@
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+.venv/
+node_modules/
+workspaces/
+**/data/
+**/REVIEW_NOTES.md
+**/CHAT_LOG.md
+*.log
