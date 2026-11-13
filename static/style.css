@@ -198,3 +198,4 @@ header,#toc,#panel,.btn,.seg button,.note,.gutter button,.modal-body,textarea,se
 .pair-warning { color:var(--muted); padding:10px; border:1px solid var(--line); border-radius:6px; }
 #topbar { background:var(--surface); color:var(--ink); }
 :root[data-theme="dark"] .btn.primary { color:#151a21; }
+.unit img,.original-figure object { color-scheme:light; }
